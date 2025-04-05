@@ -1,3 +1,4 @@
+
 import type { Config } from "tailwindcss";
 
 export default {
@@ -63,6 +64,21 @@ export default {
 					ring: 'hsl(var(--sidebar-ring))'
 				}
 			},
+			fontFamily: {
+				'sans': ['Inter', 'ui-sans-serif', 'system-ui', 'sans-serif'],
+				'dyslexic': ['OpenDyslexic', 'Arial', 'sans-serif'],
+				'mono': ['ui-monospace', 'SFMono-Regular', 'monospace'],
+			},
+			spacing: {
+				'reading': '1.8rem', // Enhanced line spacing for readability
+			},
+			fontSize: {
+				'reading-base': '1.05rem', // Slightly larger base font for readability
+				'reading-lg': '1.2rem',
+			},
+			letterSpacing: {
+				'reading': '0.025em', // Enhanced letter spacing for readability
+			},
 			borderRadius: {
 				lg: 'var(--radius)',
 				md: 'calc(var(--radius) - 2px)',
@@ -84,11 +100,16 @@ export default {
 					to: {
 						height: '0'
 					}
+				},
+				'fade-in': {
+					'0%': { opacity: '0' },
+					'100%': { opacity: '1' },
 				}
 			},
 			animation: {
 				'accordion-down': 'accordion-down 0.2s ease-out',
-				'accordion-up': 'accordion-up 0.2s ease-out'
+				'accordion-up': 'accordion-up 0.2s ease-out',
+				'fade-in': 'fade-in 0.5s ease-out forwards',
 			}
 		}
 	},
