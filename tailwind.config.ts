@@ -67,6 +67,8 @@ export default {
 			fontFamily: {
 				'sans': ['Inter', 'ui-sans-serif', 'system-ui', 'sans-serif'],
 				'dyslexic': ['OpenDyslexic', 'Arial', 'sans-serif'],
+				'roboto': ['Roboto', 'Arial', 'sans-serif'],
+				'arial': ['Arial', 'sans-serif'],
 				'mono': ['ui-monospace', 'SFMono-Regular', 'monospace'],
 			},
 			spacing: {
