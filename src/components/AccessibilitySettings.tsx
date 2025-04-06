@@ -81,7 +81,7 @@ const AccessibilitySettings: React.FC<AccessibilitySettingsProps> = ({
                   <SelectItem value="Inter">Inter</SelectItem>
                 </SelectContent>
               </Select>
-              <p className="text-sm mt-2 text-gray-600">Choose a font that is easier to read.</p>
+              <p className="text-sm mt-2 text-gray-600 dark:text-gray-300">Choose a font that is easier to read.</p>
             </div>
           </div>
 
@@ -102,17 +102,11 @@ const AccessibilitySettings: React.FC<AccessibilitySettingsProps> = ({
                 />
                 <ArrowRight className="h-5 w-5 text-blue-500" />
               </div>
-              <p className="text-center text-sm text-gray-600">
+              <p className="text-center text-sm text-gray-600 dark:text-gray-300">
                 Adjust the spacing between letters for better readability.
               </p>
             </div>
           </div>
-        </div>
-
-        <div className="text-center mt-10">
-          <p className="text-lg">
-            Made with <span role="img" aria-label="love">❤️</span> for You
-          </p>
         </div>
       </div>
     </section>

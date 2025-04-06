@@ -53,7 +53,7 @@ const TextProcessingPanel: React.FC<TextProcessingPanelProps> = ({
           Text Input <Pencil className="h-5 w-5 text-orange-500" />
         </h2>
         <textarea
-          className="text-input-area"
+          className={`text-input-area ${fontClass}`}
           placeholder="Enter or paste text here..."
           value={text}
           onChange={(e) => setText(e.target.value)}
@@ -91,13 +91,13 @@ const TextProcessingPanel: React.FC<TextProcessingPanelProps> = ({
             <div className={isWordHighlighting ? "space-x-1" : ""}>
               {isWordHighlighting ? 
                 processedText.split(' ').map((word, i) => (
-                  <span key={i} className="inline-block bg-yellow-100 px-1 py-0.5 rounded">{word}</span>
+                  <span key={i} className="inline-block bg-yellow-100 dark:bg-yellow-900 px-1 py-0.5 rounded">{word}</span>
                 )) : 
                 processedText
               }
             </div>
           ) : (
-            <p className="text-area-placeholder italic">Processed text will appear here... <span role="img" aria-label="Edit">🖋️</span></p>
+            <p className="text-area-placeholder">Processed text will appear here... <span role="img" aria-label="Edit">🖋️</span></p>
           )}
         </div>
 

@@ -24,13 +24,23 @@ import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { Badge } from "@/components/ui/badge";
 
-const TextReader = () => {
+interface TextReaderProps {
+  isDyslexicFont: boolean;
+  letterSpacing: number[];
+  fontType: string;
+}
+
+const TextReader: React.FC<TextReaderProps> = ({
+  isDyslexicFont,
+  letterSpacing,
+  fontType
+}) => {
   const [text, setText] = useState("");
   const [isReading, setIsReading] = useState(false);
-  const [isDyslexicFont, setIsDyslexicFont] = useState(false);
+  const [localIsDyslexicFont, setLocalIsDyslexicFont] = useState(isDyslexicFont);
   const [fontSize, setFontSize] = useState([16]);
   const [lineSpacing, setLineSpacing] = useState([1.8]);
-  const [letterSpacing, setLetterSpacing] = useState([0.025]);
+  const [localLetterSpacing, setLocalLetterSpacing] = useState(letterSpacing);
   const [summary, setSummary] = useState("");
   const [isListening, setIsListening] = useState(false);
   const [voiceRate, setVoiceRate] = useState([1]);
@@ -40,7 +50,14 @@ const TextReader = () => {
   const recognitionRef = useRef<any>(null);
   const { toast } = useToast();
 
+  // Update local state when props change
   useEffect(() => {
+    setLocalIsDyslexicFont(isDyslexicFont);
+    setLocalLetterSpacing(letterSpacing);
+  }, [isDyslexicFont, letterSpacing]);
+
+  useEffect(() => {
+    // Initialize speech recognition with typesafe approach
     if ('SpeechRecognition' in window || 'webkitSpeechRecognition' in window) {
       const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
       recognitionRef.current = new SpeechRecognition();
@@ -79,6 +96,21 @@ const TextReader = () => {
       }
     };
   }, [toast]);
+
+  const getFontClass = () => {
+    switch(fontType) {
+      case 'OpenDyslexic':
+        return 'font-dyslexic';
+      case 'Roboto':
+        return 'font-roboto';
+      case 'Arial':
+        return 'font-arial';
+      default:
+        return 'font-sans';
+    }
+  };
+
+  const fontClass = getFontClass();
 
   const handleTextChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     setText(e.target.value);
@@ -204,22 +236,20 @@ const TextReader = () => {
       });
     }, 1500);
   };
-
-  const fontClass = isDyslexicFont ? "font-dyslexic" : "font-sans";
   
   const readingStyles = {
     fontSize: `${fontSize[0]}px`,
     lineHeight: `${lineSpacing[0]}`,
-    letterSpacing: `${letterSpacing[0]}em`,
+    letterSpacing: `${localLetterSpacing[0]}em`,
   };
 
   return (
-    <Card className="w-full animate-fade-in">
+    <Card className="w-full">
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <FileText className="h-5 w-5 text-primary" />
           <span>Text Reader & Assistant</span>
-          {isListening && <Badge variant="outline" className="animate-pulse bg-red-100 text-red-600 border-red-300">Recording 🎤</Badge>}
+          {isListening && <Badge variant="outline" className="animate-pulse bg-red-100 text-red-600 border-red-300 dark:bg-red-900 dark:text-red-300 dark:border-red-800">Recording 🎤</Badge>}
         </CardTitle>
       </CardHeader>
       <CardContent>
@@ -230,7 +260,7 @@ const TextReader = () => {
               variant="outline" 
               size="sm"
               onClick={toggleSpeechToText} 
-              className={isListening ? "bg-red-100 text-red-600 border-red-300" : ""}
+              className={isListening ? "bg-red-100 text-red-600 border-red-300 dark:bg-red-900 dark:text-red-300 dark:border-red-800" : ""}
             >
               {isListening ? <MicOff className="h-4 w-4 mr-2" /> : <Mic className="h-4 w-4 mr-2" />}
               {isListening ? "Stop Dictation" : "Dictate Text"} 
@@ -239,9 +269,10 @@ const TextReader = () => {
           <Textarea
             id="text-input"
             placeholder="Enter or paste text here, or click 'Dictate Text' to speak..."
-            className="min-h-[150px]"
+            className={`min-h-[150px] ${fontClass}`}
             value={text}
             onChange={handleTextChange}
+            style={{ letterSpacing: `${localLetterSpacing[0]}em` }}
           />
         </div>
 
@@ -301,8 +332,8 @@ const TextReader = () => {
               </Label>
               <Switch 
                 id="dyslexic-font" 
-                checked={isDyslexicFont}
-                onCheckedChange={setIsDyslexicFont}
+                checked={localIsDyslexicFont}
+                onCheckedChange={setLocalIsDyslexicFont}
               />
             </div>
           </div>
@@ -339,15 +370,15 @@ const TextReader = () => {
               
               <div className="space-y-1">
                 <div className="flex justify-between">
-                  <Label htmlFor="letter-spacing">Letter Spacing ({letterSpacing[0].toFixed(3)}em)</Label>
+                  <Label htmlFor="letter-spacing">Letter Spacing ({localLetterSpacing[0].toFixed(3)}em)</Label>
                 </div>
                 <Slider
                   id="letter-spacing"
                   min={0}
                   max={0.1}
                   step={0.005}
-                  value={letterSpacing}
-                  onValueChange={setLetterSpacing}
+                  value={localLetterSpacing}
+                  onValueChange={setLocalLetterSpacing}
                 />
               </div>
             </div>

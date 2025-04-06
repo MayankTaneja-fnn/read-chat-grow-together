@@ -4,6 +4,8 @@ import NavBar from "@/components/NavBar";
 import AccessibilitySettings from "@/components/AccessibilitySettings";
 import TextProcessingPanel from "@/components/TextProcessingPanel";
 import GrammarCorrectionPanel from "@/components/GrammarCorrectionPanel";
+import TextReader from "@/components/TextReader";
+import ChatAssistantPanel from "@/components/ChatAssistantPanel";
 import { useToast } from "@/hooks/use-toast";
 
 const Index = () => {
@@ -107,6 +109,20 @@ const Index = () => {
           fontType={fontType as any}
           setFontType={setFontType as any}
         />
+        
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+          <TextReader 
+            isDyslexicFont={isDyslexicFont}
+            letterSpacing={letterSpacing}
+            fontType={fontType}
+          />
+          
+          <ChatAssistantPanel 
+            isDyslexicFont={isDyslexicFont}
+            letterSpacing={letterSpacing}
+            fontType={fontType}
+          />
+        </div>
         
         <TextProcessingPanel 
           isDyslexicFont={isDyslexicFont}

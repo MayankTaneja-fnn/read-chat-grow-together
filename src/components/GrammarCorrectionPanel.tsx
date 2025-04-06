@@ -57,7 +57,7 @@ const GrammarCorrectionPanel: React.FC<GrammarCorrectionPanelProps> = ({
   };
 
   return (
-    <section className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-md mb-10">
+    <section className="bg-background border rounded-xl p-6 shadow-md mb-10">
       <h2 className="text-3xl font-bold mb-6 flex items-center gap-2">
         Grammar & Spelling Assistance <Pencil className="h-6 w-6 text-orange-500" />
       </h2>
@@ -66,7 +66,7 @@ const GrammarCorrectionPanel: React.FC<GrammarCorrectionPanelProps> = ({
         <div className="space-y-3">
           <h3 className="text-xl font-medium">Enter text for correction:</h3>
           <textarea
-            className="text-input-area"
+            className={`text-input-area ${fontClass}`}
             placeholder="Enter text with spelling or grammar issues..."
             value={inputText}
             onChange={(e) => setInputText(e.target.value)}
@@ -96,7 +96,7 @@ const GrammarCorrectionPanel: React.FC<GrammarCorrectionPanelProps> = ({
             )}
           </div>
 
-          <div className="bg-gray-100 dark:bg-gray-700 p-4 rounded-lg">
+          <div className="bg-gray-100 dark:bg-gray-800 p-4 rounded-lg">
             <h4 className="font-medium mb-2">Tips:</h4>
             <ul className="list-disc pl-5 space-y-2">
               <li>Use clear, simple sentences</li>
