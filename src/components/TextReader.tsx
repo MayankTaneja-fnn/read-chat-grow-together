@@ -1,4 +1,3 @@
-
 import React, { useState, useRef, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -16,7 +15,7 @@ import {
   MicOff,
   BrainCircuit,
   ScanText,
-  VolumeUp
+  Volume
 } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
 import { Slider } from "@/components/ui/slider";
@@ -41,7 +40,6 @@ const TextReader = () => {
   const { toast } = useToast();
 
   useEffect(() => {
-    // Initialize speech recognition
     if ('SpeechRecognition' in window || 'webkitSpeechRecognition' in window) {
       const SpeechRecognition = window.SpeechRecognition || (window as any).webkitSpeechRecognition;
       recognitionRef.current = new SpeechRecognition();
@@ -72,7 +70,6 @@ const TextReader = () => {
     }
     
     return () => {
-      // Cleanup
       if (recognitionRef.current) {
         recognitionRef.current.stop();
       }
@@ -157,7 +154,6 @@ const TextReader = () => {
         description: "Voice input has been turned off.",
       });
     } else {
-      // Start a new recognition session
       recognitionRef.current.start();
       setIsListening(true);
       toast({
@@ -177,30 +173,24 @@ const TextReader = () => {
       return;
     }
 
-    // In a real application, this would call an API
-    // For now, we'll simulate a summary with a timeout
     toast({
       title: "Summarizing text... 🧠",
       description: "Please wait while we process your text.",
     });
 
     setTimeout(() => {
-      // Simple summarization logic (for demo purposes)
       const sentences = text.match(/[^.!?]+[.!?]+/g) || [];
       let simpleSummary = "";
       
       if (sentences.length <= 3) {
         simpleSummary = text;
       } else {
-        // Take the first sentence and a couple more from the text
         simpleSummary = sentences.slice(0, 2).join(" ");
         
         if (sentences.length > 4) {
-          // Add another sentence from later in the text
           simpleSummary += " [...] " + sentences[sentences.length - 2];
         }
         
-        // Add a concluding line
         if (sentences.length > 5) {
           simpleSummary += " " + sentences[sentences.length - 1];
         }
@@ -363,7 +353,7 @@ const TextReader = () => {
 
             <div className="space-y-3">
               <div className="flex items-center gap-2 mb-1">
-                <VolumeUp className="h-4 w-4 text-blue-500" />
+                <Volume className="h-4 w-4 text-blue-500" />
                 <span className="text-sm font-medium">Voice Settings</span>
               </div>
               
