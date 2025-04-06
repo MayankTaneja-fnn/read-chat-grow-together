@@ -12,7 +12,7 @@ const NavBar = () => {
       <div className="container flex h-16 items-center justify-between">
         <div className="flex items-center gap-2">
           <Book className="h-6 w-6 text-accent" />
-          <h1 className="text-xl font-semibold">ReadChat</h1>
+          <h1 className="text-xl font-semibold">TextEase</h1>
         </div>
         
         <nav className="flex items-center gap-4">

@@ -1,5 +1,5 @@
 
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -11,12 +11,18 @@ import {
   VolumeX, 
   RefreshCw, 
   AlignJustify, 
-  Type 
+  Type,
+  Mic,
+  MicOff,
+  BrainCircuit,
+  ScanText,
+  VolumeUp
 } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
 import { Slider } from "@/components/ui/slider";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
+import { Badge } from "@/components/ui/badge";
 
 const TextReader = () => {
   const [text, setText] = useState("");
@@ -26,9 +32,55 @@ const TextReader = () => {
   const [lineSpacing, setLineSpacing] = useState([1.8]);
   const [letterSpacing, setLetterSpacing] = useState([0.025]);
   const [summary, setSummary] = useState("");
+  const [isListening, setIsListening] = useState(false);
+  const [voiceRate, setVoiceRate] = useState([1]);
+  const [voicePitch, setVoicePitch] = useState([1]);
   const synth = useRef(window.speechSynthesis);
   const speechUtterance = useRef<SpeechSynthesisUtterance | null>(null);
+  const recognitionRef = useRef<any>(null);
   const { toast } = useToast();
+
+  useEffect(() => {
+    // Initialize speech recognition
+    if ('SpeechRecognition' in window || 'webkitSpeechRecognition' in window) {
+      const SpeechRecognition = window.SpeechRecognition || (window as any).webkitSpeechRecognition;
+      recognitionRef.current = new SpeechRecognition();
+      recognitionRef.current.continuous = true;
+      recognitionRef.current.interimResults = true;
+      
+      recognitionRef.current.onresult = (event: any) => {
+        let transcript = '';
+        for (let i = 0; i < event.results.length; i++) {
+          if (event.results[i].isFinal) {
+            transcript += event.results[i][0].transcript + ' ';
+          }
+        }
+        if (transcript) {
+          setText(prev => prev + transcript);
+        }
+      };
+      
+      recognitionRef.current.onerror = (event: any) => {
+        console.error("Speech recognition error", event);
+        setIsListening(false);
+        toast({
+          title: "Speech recognition error",
+          description: "There was an error with speech recognition. Please try again.",
+          variant: "destructive",
+        });
+      };
+    }
+    
+    return () => {
+      // Cleanup
+      if (recognitionRef.current) {
+        recognitionRef.current.stop();
+      }
+      if (speechUtterance.current) {
+        synth.current.cancel();
+      }
+    };
+  }, [toast]);
 
   const handleTextChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     setText(e.target.value);
@@ -49,16 +101,31 @@ const TextReader = () => {
     }
 
     speechUtterance.current = new SpeechSynthesisUtterance(text);
+    speechUtterance.current.rate = voiceRate[0];
+    speechUtterance.current.pitch = voicePitch[0];
     speechUtterance.current.onend = () => setIsReading(false);
     synth.current.speak(speechUtterance.current);
     setIsReading(true);
+    
+    toast({
+      title: "Reading started",
+      description: "Text is being read aloud. Use the controls to pause or stop.",
+    });
   };
 
   const pauseReading = () => {
     if (isReading) {
       synth.current.pause();
+      toast({
+        title: "Reading paused",
+        description: "Click Resume to continue reading.",
+      });
     } else {
       synth.current.resume();
+      toast({
+        title: "Reading resumed",
+        description: "Text-to-speech has resumed.",
+      });
     }
     setIsReading(!isReading);
   };
@@ -66,6 +133,38 @@ const TextReader = () => {
   const stopReading = () => {
     synth.current.cancel();
     setIsReading(false);
+    toast({
+      title: "Reading stopped",
+      description: "Text-to-speech has been stopped.",
+    });
+  };
+
+  const toggleSpeechToText = () => {
+    if (!recognitionRef.current) {
+      toast({
+        title: "Speech recognition not available",
+        description: "Your browser doesn't support speech recognition. Try Chrome or Edge.",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    if (isListening) {
+      recognitionRef.current.stop();
+      setIsListening(false);
+      toast({
+        title: "Speech to text stopped",
+        description: "Voice input has been turned off.",
+      });
+    } else {
+      // Start a new recognition session
+      recognitionRef.current.start();
+      setIsListening(true);
+      toast({
+        title: "Listening... 🎤",
+        description: "Speak clearly. Your speech will be converted to text.",
+      });
+    }
   };
 
   const summarizeText = async () => {
@@ -81,7 +180,7 @@ const TextReader = () => {
     // In a real application, this would call an API
     // For now, we'll simulate a summary with a timeout
     toast({
-      title: "Summarizing text...",
+      title: "Summarizing text... 🧠",
       description: "Please wait while we process your text.",
     });
 
@@ -94,17 +193,22 @@ const TextReader = () => {
         simpleSummary = text;
       } else {
         // Take the first sentence and a couple more from the text
-        simpleSummary = sentences.slice(0, 3).join(" ");
+        simpleSummary = sentences.slice(0, 2).join(" ");
         
-        if (sentences.length > 5) {
+        if (sentences.length > 4) {
           // Add another sentence from later in the text
           simpleSummary += " [...] " + sentences[sentences.length - 2];
+        }
+        
+        // Add a concluding line
+        if (sentences.length > 5) {
+          simpleSummary += " " + sentences[sentences.length - 1];
         }
       }
       
       setSummary(simpleSummary);
       toast({
-        title: "Summary ready!",
+        title: "Summary ready! 📝",
         description: "Check the Summary tab to see your results.",
       });
     }, 1500);
@@ -124,14 +228,26 @@ const TextReader = () => {
         <CardTitle className="flex items-center gap-2">
           <FileText className="h-5 w-5 text-primary" />
           <span>Text Reader & Assistant</span>
+          {isListening && <Badge variant="outline" className="animate-pulse bg-red-100 text-red-600 border-red-300">Recording 🎤</Badge>}
         </CardTitle>
       </CardHeader>
       <CardContent>
         <div className="mb-4">
-          <Label htmlFor="text-input">Enter or paste text</Label>
+          <div className="flex justify-between mb-2">
+            <Label htmlFor="text-input">Enter or paste text</Label>
+            <Button 
+              variant="outline" 
+              size="sm"
+              onClick={toggleSpeechToText} 
+              className={isListening ? "bg-red-100 text-red-600 border-red-300" : ""}
+            >
+              {isListening ? <MicOff className="h-4 w-4 mr-2" /> : <Mic className="h-4 w-4 mr-2" />}
+              {isListening ? "Stop Dictation" : "Dictate Text"} 
+            </Button>
+          </div>
           <Textarea
             id="text-input"
-            placeholder="Enter or paste text here..."
+            placeholder="Enter or paste text here, or click 'Dictate Text' to speak..."
             className="min-h-[150px]"
             value={text}
             onChange={handleTextChange}
@@ -146,7 +262,7 @@ const TextReader = () => {
             onClick={startReading}
             disabled={isReading || text.trim() === ""}
           >
-            <Play className="h-4 w-4" /> Read
+            <Play className="h-4 w-4" /> Read Aloud 🔊
           </Button>
           
           <Button
@@ -177,7 +293,7 @@ const TextReader = () => {
             onClick={summarizeText}
             disabled={text.trim() === ""}
           >
-            <AlignJustify className="h-4 w-4" /> Summarize
+            <BrainCircuit className="h-4 w-4" /> Summarize 📝
           </Button>
         </div>
 
@@ -185,7 +301,8 @@ const TextReader = () => {
           <div className="flex justify-between items-center">
             <div className="flex items-center gap-2">
               <Type className="h-4 w-4" />
-              <span className="font-medium">Reading Settings</span>
+              <span className="font-medium">Reading Settings</span> 
+              <span className="text-xs text-muted-foreground">🖌️ Customize how text appears</span>
             </div>
             <div className="flex items-center gap-2">
               <Label htmlFor="dyslexic-font" className="text-sm cursor-pointer">
@@ -199,55 +316,96 @@ const TextReader = () => {
             </div>
           </div>
 
-          <div className="space-y-3">
-            <div className="space-y-1">
-              <div className="flex justify-between">
-                <Label htmlFor="font-size">Font Size ({fontSize[0]}px)</Label>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="space-y-3">
+              <div className="space-y-1">
+                <div className="flex justify-between">
+                  <Label htmlFor="font-size">Font Size ({fontSize[0]}px)</Label>
+                </div>
+                <Slider
+                  id="font-size"
+                  min={14}
+                  max={24}
+                  step={1}
+                  value={fontSize}
+                  onValueChange={setFontSize}
+                />
               </div>
-              <Slider
-                id="font-size"
-                min={14}
-                max={24}
-                step={1}
-                value={fontSize}
-                onValueChange={setFontSize}
-              />
+              
+              <div className="space-y-1">
+                <div className="flex justify-between">
+                  <Label htmlFor="line-spacing">Line Spacing ({lineSpacing[0].toFixed(1)})</Label>
+                </div>
+                <Slider
+                  id="line-spacing"
+                  min={1.2}
+                  max={2.5}
+                  step={0.1}
+                  value={lineSpacing}
+                  onValueChange={setLineSpacing}
+                />
+              </div>
+              
+              <div className="space-y-1">
+                <div className="flex justify-between">
+                  <Label htmlFor="letter-spacing">Letter Spacing ({letterSpacing[0].toFixed(3)}em)</Label>
+                </div>
+                <Slider
+                  id="letter-spacing"
+                  min={0}
+                  max={0.1}
+                  step={0.005}
+                  value={letterSpacing}
+                  onValueChange={setLetterSpacing}
+                />
+              </div>
             </div>
-            
-            <div className="space-y-1">
-              <div className="flex justify-between">
-                <Label htmlFor="line-spacing">Line Spacing ({lineSpacing[0].toFixed(1)})</Label>
+
+            <div className="space-y-3">
+              <div className="flex items-center gap-2 mb-1">
+                <VolumeUp className="h-4 w-4 text-blue-500" />
+                <span className="text-sm font-medium">Voice Settings</span>
               </div>
-              <Slider
-                id="line-spacing"
-                min={1.2}
-                max={2.5}
-                step={0.1}
-                value={lineSpacing}
-                onValueChange={setLineSpacing}
-              />
-            </div>
-            
-            <div className="space-y-1">
-              <div className="flex justify-between">
-                <Label htmlFor="letter-spacing">Letter Spacing ({letterSpacing[0].toFixed(3)}em)</Label>
+              
+              <div className="space-y-1">
+                <div className="flex justify-between">
+                  <Label htmlFor="voice-rate">Speed ({voiceRate[0].toFixed(1)}x)</Label>
+                </div>
+                <Slider
+                  id="voice-rate"
+                  min={0.5}
+                  max={2}
+                  step={0.1}
+                  value={voiceRate}
+                  onValueChange={setVoiceRate}
+                />
               </div>
-              <Slider
-                id="letter-spacing"
-                min={0}
-                max={0.1}
-                step={0.005}
-                value={letterSpacing}
-                onValueChange={setLetterSpacing}
-              />
+              
+              <div className="space-y-1">
+                <div className="flex justify-between">
+                  <Label htmlFor="voice-pitch">Pitch ({voicePitch[0].toFixed(1)})</Label>
+                </div>
+                <Slider
+                  id="voice-pitch"
+                  min={0.5}
+                  max={2}
+                  step={0.1}
+                  value={voicePitch}
+                  onValueChange={setVoicePitch}
+                />
+              </div>
             </div>
           </div>
         </div>
 
         <Tabs defaultValue="preview">
           <TabsList className="mb-2">
-            <TabsTrigger value="preview">Preview</TabsTrigger>
-            <TabsTrigger value="summary">Summary</TabsTrigger>
+            <TabsTrigger value="preview">
+              <ScanText className="h-4 w-4 mr-1" /> Preview
+            </TabsTrigger>
+            <TabsTrigger value="summary">
+              <BrainCircuit className="h-4 w-4 mr-1" /> Summary
+            </TabsTrigger>
           </TabsList>
           
           <TabsContent value="preview" className="h-[200px] overflow-y-auto border rounded-lg p-4">
@@ -256,8 +414,10 @@ const TextReader = () => {
                 {text}
               </div>
             ) : (
-              <div className="text-muted-foreground flex items-center justify-center h-full">
+              <div className="text-muted-foreground flex flex-col items-center justify-center h-full">
+                <ScanText className="h-8 w-8 mb-2 text-muted-foreground" />
                 <p>Your text preview will appear here</p>
+                <p className="text-xs mt-1">Type in the box above or use the speech-to-text feature</p>
               </div>
             )}
           </TabsContent>
@@ -268,8 +428,10 @@ const TextReader = () => {
                 {summary}
               </div>
             ) : (
-              <div className="text-muted-foreground flex items-center justify-center h-full">
+              <div className="text-muted-foreground flex flex-col items-center justify-center h-full">
+                <BrainCircuit className="h-8 w-8 mb-2 text-muted-foreground" />
                 <p>Text summary will appear here after summarization</p>
+                <p className="text-xs mt-1">Click the "Summarize" button to generate a summary</p>
               </div>
             )}
           </TabsContent>
